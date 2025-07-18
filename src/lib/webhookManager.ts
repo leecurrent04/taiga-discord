@@ -218,10 +218,29 @@ class WebhookManager {
         // Dynamic import to ensure discord.js is only loaded on server
         const { WebhookClient } = await import('discord.js')
         const webhookClient = new WebhookClient({ url: webhook.url })
+
+	const embedToSend = { ...embed }; 
+
+	// Check if the embed has a 'fields' property and if it's an array.
+	if (embedToSend.fields && Array.isArray(embedToSend.fields)) {
+		embedToSend.fields = embedToSend.fields.map(field => {
+			// Discord embed field 'value' has a maximum length of 1024 characters.
+			const MAX_FIELD_VALUE_LENGTH = 1024;
+
+			// If field.value is a string and its length exceeds the limit, truncate it.
+			if (typeof field.value === 'string' && field.value.length > MAX_FIELD_VALUE_LENGTH) {
+				console.warn(`Embed field value truncated due to length limit. Original length: ${field.value.length}`);
+				return { ...field, value: field.value.substring(0, MAX_FIELD_VALUE_LENGTH) };
+			}
+			// Otherwise, return the field as is.
+			return field; 
+		});
+	}
+
         await webhookClient.send({
           username: 'Taiga',
           avatarURL: 'https://avatars.githubusercontent.com/u/6905422?s=200&v=4',
-          embeds: [embed]
+          embeds: [embedToSend]
         })
         
         results.push({
