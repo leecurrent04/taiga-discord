@@ -242,6 +242,7 @@ class WebhookManager {
           avatarURL: 'https://avatars.githubusercontent.com/u/6905422?s=200&v=4',
           embeds: [embedToSend]
         })
+	console.log(embedToSend);
         
         results.push({
           webhookId: webhook.id,

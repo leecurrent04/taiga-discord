@@ -35,10 +35,6 @@ function createBaseEmbed(title: string, url: string, color: number, timestamp: s
     color: color,
     timestamp: timestamp,
     thumbnail: changer?.photo ? { url: changer.photo } : undefined,
-    footer: {
-      icon_url: EMBED.FOOTER.ICON_URL,
-      text: `Managed by Koders • ${formatDate(timestamp)}`
-    },
     fields: [
       ...(assignedTo ? [{
         name: '👥 Assigned To',
@@ -60,11 +56,16 @@ function createBaseEmbed(title: string, url: string, color: number, timestamp: s
 }
 
 export function handleTaskEvent(body: any) {
+  console.log(JSON.stringify(body.change, null, 2));
+
   const task = body.data
   let title = '', color = COLORS.CHANGE, extraFields: any[] = []
   const assignedTo = task.assigned_to
   const changer = body.by
   const sprint = task.milestone
+
+  const diff_change = body.change
+  let diffFields : any[] = []
 
   let statusField
   if (body.action === 'change' && body.change?.diff?.status) {
@@ -93,6 +94,72 @@ export function handleTaskEvent(body: any) {
     case 'change':
       title = `✏️ Updated Task #${task.ref}: ${task.subject}`
       color = COLORS.CHANGE
+
+      if (body.change?.diff?.assigned_to) {
+	      diffFields.push({
+		      name: '💭 Comment',
+		      value: `${body.change.diff.assigned_to.from} to ${body.change.diff.assigned_to.to}`
+	      })
+      }
+
+      if (body.change?.diff?.estimated_start) {
+	      diffFields.push({
+		      name: '📅 Start Date',
+		      value: `${formatDate(body.change.diff.estimated_start.from)} → ${formatDate(body.change.diff.estimated_start.to)}`,
+		      inline: true
+	      })
+      }
+
+      if (body.change?.diff?.estimated_finish) {
+	      diffFields.push({
+		      name: '📅 End Date',
+		      value: `${formatDate(body.change.diff.estimated_finish.from)} → ${formatDate(body.change.diff.estimated_finish.to)}`,
+		      inline: true
+	      })
+      }
+
+      if (body.change?.diff?.subject || body.change?.diff?.name) {
+	      const from = body.change?.diff?.subject?.from || body.change?.diff?.name?.from || 'Unknown'
+	      const to = body.change?.diff?.subject?.to || body.change?.diff?.name?.to || 'Unknown'
+	      diffFields.push({
+		      name: '📝 Name',
+		      value: `${from} → ${to}`
+	      })
+      }
+
+      if (body.change?.diff?.status) {
+	      diffFields.push({
+		      name: '📊 Status',
+		      value: `${body.change.diff.status.from} → ${body.change.diff.status.to}`,
+		      inline: true
+	      })
+      } else if (body.change?.diff?.closed) {
+	      diffFields.push({
+		      name: '📊 Status',
+		      value: `${body.change.diff.closed.from ? '🔒 Closed' : '🔓 Open'} → ${body.change.diff.closed.to ? '🔒 Closed' : '🔓 Open'}`,
+		      inline: true
+	      })
+      }
+
+      if (body.change?.comment) {
+	      console.log(body.change.delete_comment_date);
+	      if(body.change.delete_comment_date != null){
+		      title = `✏️Delete Comment on task #${task.ref}: ${task.subject}`
+		      color = COLORS.DELETE
+	      }
+	      else if(body.change.edit_comment_date != null){
+		      title = `✏️Update Comment on task #${task.ref}: ${task.subject}`
+		      color = COLORS.CHANGE
+	      }
+	      else{
+		      title = `✏️New Comment on task #${task.ref}: ${task.subject}`
+		      color = COLORS.CREATE
+	      }
+	      diffFields.push({
+		      name: '💭 Comment',
+		      value: body.change.comment
+	      })
+      }
       break
   }
 
@@ -141,6 +208,7 @@ export function handleTaskEvent(body: any) {
   return {
     ...createBaseEmbed(title, task.permalink, color, body.date, changer, assignedTo, sprint),
     fields: [
+      ...diffFields,
       {
         name: '📚 Project',
         value: `[${task.project.name}](${task.project.permalink})`,
