@@ -2,6 +2,8 @@ const COLORS = {
   CREATE: 0x00ff00,  // Green
   DELETE: 0xff0000,  // Red
   CHANGE: 0xffff00,  // Yellow
+  CLOSE: 0xdadadc,   // Gray
+  COMMENT: 0x7289da  // Sky blue
 }
 
 const EMBED = {
@@ -26,143 +28,142 @@ function formatDate(dateString: string) {
   })
 }
 
-function createBaseEmbed(title: string, url: string, color: number, timestamp: string, changer: any, assignedTo?: any, sprint?: any) {
+function createBaseEmbed(title: string, url: string, color: number, timestamp: string, changer: any) {
+  let img = changer.photo.split('?')[0];
   return {
     author: {
-      name: title,
-      url: url
+      icon_url: changer?.photo ? img : undefined,
+      name : `${changer.username} (${changer.full_name})`,
+      url: `${changer.permalink}`
     },
     color: color,
     timestamp: timestamp,
-    thumbnail: changer?.photo ? { url: changer.photo } : undefined,
-    fields: [
-      ...(assignedTo ? [{
-        name: '👥 Assigned To',
-        value: `[${assignedTo.full_name}](${assignedTo.permalink})`,
-        inline: true
-      }] : []),
-      ...(changer ? [{
-        name: '📝 Changed By',
-        value: `[${changer.full_name}](${changer.permalink})`,
-        inline: true
-      }] : []),
-      ...(sprint ? [{
-        name: '🏃 Sprint',
-        value: sprint.name,
-        inline: true
-      }] : [])
-    ]
+    title: title,
+    url: url
   }
 }
 
 export function handleTaskEvent(body: any) {
+  console.log(body);
   console.log(JSON.stringify(body.change, null, 2));
 
   const task = body.data
-  let title = '', color = COLORS.CHANGE, extraFields: any[] = []
-  const assignedTo = task.assigned_to
-  const changer = body.by
-  const sprint = task.milestone
+  let title = '', color = COLORS.CHANGE
 
-  const diff_change = body.change
+  let extraFields: any[] = []
   let diffFields : any[] = []
-
-  let statusField
-  if (body.action === 'change' && body.change?.diff?.status) {
-    statusField = {
-      name: '📊 Status',
-      value: `${body.change.diff.status.from} → ${body.change.diff.status.to}`,
-      inline: true
-    }
-  } else {
-    statusField = {
-      name: '📊 Status',
-      value: task.status.name,
-      inline: true
-    }
-  }
+  let descFields : any[] = []
 
   switch (body.action) {
     case 'create':
-      title = `📋 Created Task #${task.ref}: ${task.subject}`
+      title = `Created Task #${task.ref}: ${task.subject}`
       color = COLORS.CREATE
       break
     case 'delete':
-      title = `🗑️ Deleted Task #${task.ref}: ${task.subject}`
+      title = `Deleted Task #${task.ref}: ${task.subject}`
       color = COLORS.DELETE
       break
     case 'change':
-      title = `✏️ Updated Task #${task.ref}: ${task.subject}`
+      title = `Updated Task #${task.ref}: ${task.subject}`
       color = COLORS.CHANGE
-
-      if (body.change?.diff?.assigned_to) {
-	      diffFields.push({
-		      name: '💭 Comment',
-		      value: `${body.change.diff.assigned_to.from} to ${body.change.diff.assigned_to.to}`
-	      })
-      }
-
-      if (body.change?.diff?.estimated_start) {
-	      diffFields.push({
-		      name: '📅 Start Date',
-		      value: `${formatDate(body.change.diff.estimated_start.from)} → ${formatDate(body.change.diff.estimated_start.to)}`,
-		      inline: true
-	      })
-      }
-
-      if (body.change?.diff?.estimated_finish) {
-	      diffFields.push({
-		      name: '📅 End Date',
-		      value: `${formatDate(body.change.diff.estimated_finish.from)} → ${formatDate(body.change.diff.estimated_finish.to)}`,
-		      inline: true
-	      })
-      }
-
-      if (body.change?.diff?.subject || body.change?.diff?.name) {
-	      const from = body.change?.diff?.subject?.from || body.change?.diff?.name?.from || 'Unknown'
-	      const to = body.change?.diff?.subject?.to || body.change?.diff?.name?.to || 'Unknown'
-	      diffFields.push({
-		      name: '📝 Name',
-		      value: `${from} → ${to}`
-	      })
-      }
-
-      if (body.change?.diff?.status) {
-	      diffFields.push({
-		      name: '📊 Status',
-		      value: `${body.change.diff.status.from} → ${body.change.diff.status.to}`,
-		      inline: true
-	      })
-      } else if (body.change?.diff?.closed) {
-	      diffFields.push({
-		      name: '📊 Status',
-		      value: `${body.change.diff.closed.from ? '🔒 Closed' : '🔓 Open'} → ${body.change.diff.closed.to ? '🔒 Closed' : '🔓 Open'}`,
-		      inline: true
-	      })
-      }
-
-      if (body.change?.comment) {
-	      console.log(body.change.delete_comment_date);
-	      if(body.change.delete_comment_date != null){
-		      title = `✏️Delete Comment on task #${task.ref}: ${task.subject}`
-		      color = COLORS.DELETE
-	      }
-	      else if(body.change.edit_comment_date != null){
-		      title = `✏️Update Comment on task #${task.ref}: ${task.subject}`
-		      color = COLORS.CHANGE
-	      }
-	      else{
-		      title = `✏️New Comment on task #${task.ref}: ${task.subject}`
-		      color = COLORS.CREATE
-	      }
-	      diffFields.push({
-		      name: '💭 Comment',
-		      value: body.change.comment
-	      })
-      }
       break
   }
 
+  // diff_Fields
+  if (body.change?.diff?.subject || body.change?.diff?.name) {
+    const from = body.change?.diff?.subject?.from || body.change?.diff?.name?.from || 'Unknown'
+    const to = body.change?.diff?.subject?.to || body.change?.diff?.name?.to || 'Unknown'
+    diffFields.push({
+      name: '📝 Name',
+      value: `${from} → ${to}`
+    })
+  }
+  if (body.change?.diff?.due_date) {
+    diffFields.push({
+      name: '📅 Due date',
+      value: `${formatDate(body.change.diff.due_date.from)} → ${formatDate(body.change.diff.due_date.to)}`,
+    })
+  }
+  if (body.change?.diff?.is_blocked) {
+    const from = body.change.diff.is_blocked.from;
+
+    diffFields.push({
+      name: `⚠️ ${from==true?'Unblocked':'Blocked'}`,
+      value: from==true?``:`**Note**: ${task.blocked_note}`,
+    })
+  }
+  if (body.change?.diff?.status) {
+    diffFields.push({
+      name: '📊 Status',
+      value: `${body.change.diff.status.from} → ${body.change.diff.status.to}`,
+    })
+    if(body.change.diff.status.to == 'Closed')
+    {
+      color = COLORS.CLOSE;
+    }
+  }
+  if (body.change?.comment) {
+    if (body.change.delete_comment_date != null) {
+      title = `Delete comment on task #${task.ref}: ${task.subject}`
+      color = COLORS.DELETE
+    }
+    else if (body.change.edit_comment_date != null) {
+      title = `Update comment on task #${task.ref}: ${task.subject}`
+      color = COLORS.CHANGE
+    }
+    if (body.change.edit_comment_date == null && body.change.delete_comment_date == null) {
+      title = `New comment on task #${task.ref}: ${task.subject}`
+      color = COLORS.COMMENT
+    }
+    diffFields.push({
+      name: '💭 Comment',
+      value: body.change.comment
+    })
+  }
+  if(body.change?.diff?.attachments)
+  {
+    let attachments:any = ''
+    let file:any = '', fileUrl:any = ''
+
+    if(body.change.diff.attachments.deleted.length != 0) {
+      title = `Delete attachment on task #${task.ref}: ${task.subject}`
+      color = COLORS.DELETE
+      attachments = body.change.diff.attachments.deleted
+    }
+    else if(body.change.diff.attachments.changed.length != 0) {
+      title = `Change attachment on task #${task.ref}: ${task.subject}`
+      color = COLORS.CHANGE
+      attachments = body.change.diff.attachments.changed
+    }
+    else if(body.change.diff.attachments.new.length != 0) {
+      title = `New attachment on task #${task.ref}: ${task.subject}`
+      color = COLORS.CREATE
+      attachments = body.change.diff.attachments.new
+    }
+
+    for(let i of attachments)
+    {
+      file = i.filename
+      fileUrl = i.url
+    }
+
+    diffFields.push({
+      name: '📁 Attachment',
+      value: `[${file}](${fileUrl})`
+    })
+  }
+
+  // extraFields
+  if (task.project)
+  {
+    extraFields.push(
+      {
+        name: '📚 Project',
+        value: `[${task.project.name}](${task.project.permalink})`,
+        inline: true
+      },
+    )
+  }
   if (task.user_story) {
     extraFields.push({
       name: '📝 User Story',
@@ -173,7 +174,22 @@ export function handleTaskEvent(body: any) {
   if (task.milestone) {
     extraFields.push({
       name: '🏃 Sprint',
-      value: task.milestone.name,
+      value: `[${task.milestone.name}](${task.milestone.permalink})`,
+      inline: true
+    })
+  }
+  if (task.status.name) {
+    extraFields.push({
+      name: '📊 Status',
+      value: task.status.name,
+      inline: true
+    })
+  }
+  if (task.assigned_to != null)
+  {
+    extraFields.push({
+      name: '👥 Assigned To',
+      value: `[${task.assigned_to.full_name}](${task.assigned_to.permalink})`,
       inline: true
     })
   }
@@ -198,29 +214,23 @@ export function handleTaskEvent(body: any) {
       inline: true
     })
   }
+  
+  // descField
   if (task.description) {
-    extraFields.push({
+    descFields.push({
       name: '📄 Description',
       value: task.description
     })
   }
 
+  const baseEmbed = createBaseEmbed(title, body.data.permalink, color, body.date, body.by);
+
   return {
-    ...createBaseEmbed(title, task.permalink, color, body.date, changer, assignedTo, sprint),
+    ...baseEmbed,
     fields: [
       ...diffFields,
-      {
-        name: '📚 Project',
-        value: `[${task.project.name}](${task.project.permalink})`,
-        inline: true
-      },
-      {
-        name: '👤 Updated By',
-        value: `[${changer.full_name}](${changer.permalink})`,
-        inline: true
-      },
-      statusField,
-      ...extraFields
+      ...extraFields,
+      ...descFields
     ]
   }
 } 
