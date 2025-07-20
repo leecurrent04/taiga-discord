@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {} from 'crypto'
-// import crypto from 'crypto'
 import { webhookManager } from '../../../lib/webhookManager'
 //import { handleMilestoneEvent } from '../../../lib/eventHandlers/milestoneHandler'
-import { handleUserStoryEvent } from '../../../lib/eventHandlers/userStoryHandler'
-import { handleTaskEvent } from '../../../lib/eventHandlers/taskHandler'
+import { UserStoryHandler } from '../../../lib/eventHandlers/userStoryHandler'
+import { TaskHandler } from '../../../lib/eventHandlers/taskHandler'
 import { handleIssueEvent } from '../../../lib/eventHandlers/issueHandler'
 import { handleWikiPageEvent } from '../../../lib/eventHandlers/wikiPageHandler'
 import { handleEpicEvent } from '../../../lib/eventHandlers/epicHandler'
@@ -28,10 +27,13 @@ const EMBED = {
   }
 }
 
+const userStoryHander = new UserStoryHandler()
+const taskHandler = new TaskHandler()
+
 const EVENT_HANDLERS = {
   //'milestone': handleMilestoneEvent,
-  'userstory': handleUserStoryEvent,
-  'task': handleTaskEvent,
+  'userstory': userStoryHander.handleEvent.bind(userStoryHander),
+  'task': taskHandler.handleEvent.bind(taskHandler),
   'issue': handleIssueEvent,
   'wikipage': handleWikiPageEvent,
   'epic': handleEpicEvent

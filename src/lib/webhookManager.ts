@@ -223,7 +223,7 @@ class WebhookManager {
 
 	// Check if the embed has a 'fields' property and if it's an array.
 	if (embedToSend.fields && Array.isArray(embedToSend.fields)) {
-		embedToSend.fields = embedToSend.fields.map(field => {
+		embedToSend.fields = embedToSend.fields.map((field: { value: string }) => {
 			// Discord embed field 'value' has a maximum length of 1024 characters.
 			const MAX_FIELD_VALUE_LENGTH = 1024;
 
