@@ -4,7 +4,7 @@ import { webhookManager } from '../../../lib/webhookManager'
 import { MilestoneHandler } from '../../../lib/eventHandlers/milestoneHandler'
 import { UserStoryHandler } from '../../../lib/eventHandlers/userStoryHandler'
 import { TaskHandler } from '../../../lib/eventHandlers/taskHandler'
-import { handleIssueEvent } from '../../../lib/eventHandlers/issueHandler'
+import { IssueHandler } from '../../../lib/eventHandlers/issueHandler'
 import { handleWikiPageEvent } from '../../../lib/eventHandlers/wikiPageHandler'
 import { EpicHandler} from '../../../lib/eventHandlers/epicHandler'
 
@@ -31,12 +31,14 @@ const epicHandler = new EpicHandler()
 const userStoryHandler = new UserStoryHandler()
 const taskHandler = new TaskHandler()
 const milestoneHandler = new MilestoneHandler()
+const issueHandler = new IssueHandler()
 
 const EVENT_HANDLERS = {
   'milestone': milestoneHandler.handleEvent.bind(milestoneHandler),
   'userstory': userStoryHandler.handleEvent.bind(userStoryHandler),
   'task': taskHandler.handleEvent.bind(taskHandler),
-  'issue': handleIssueEvent,
+  // 'issue': handleIssueEvent,
+  'issue': issueHandler.handleEvent.bind(issueHandler),
   'wikipage': handleWikiPageEvent,
   'epic': epicHandler.handleEvent.bind(epicHandler)
 }

@@ -282,6 +282,7 @@ export class EventHandler
       case 'epic': type = 'Epic'; break;
       case 'userstory': type = 'User Story'; break;
       case 'task': type = 'Task'; break;
+      case 'issue' : type = 'Issue'; break;
       case 'milestone' : type = 'Scrum'; break;
     }
 
