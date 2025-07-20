@@ -8,86 +8,46 @@ export class UserStoryHandler extends EventHandler
   extraFields: any[] = []
   descFields: any[] = []
 
-  COLORS = {
-    CREATE: 0x00ff00,  // Green
-    DELETE: 0xff0000,  // Red
-    CHANGE: 0xffff00,  // Yellow
-    CLOSE: 0xdadadc,   // Gray
-    COMMENT: 0x7289da  // Sky blue
-  }
+  createDiffFields(body: any): void {
+    if(body.action != 'change') return;
 
-  handleEvent(body: any) {
-    super.handleEvent(body)
+    this.diffFields = [];
+    const type = this.getBodyTypeStr(body);
 
-    const assignedTo = body.data.assigned_to
-    const changer = body.by
-    const sprint = body.data.milestone
+    super.createDiffFields(body);
 
-    this.createDiffFields(body)
-    this.createExtraFields(body)
-
-    return {
-      ...this.createBaseEmbed(this.title, body.data.permalink, this.color, body.date, changer, assignedTo, sprint),
-      fields: [
-        ...this.diffFields,
-        ...this.extraFields,
-        ...this.descFields
-      ]
+    if(body?.change?.diff?.points)
+    {
+      this.title = `Updated points on ${type} #${body.data.ref}: ${body.data.subject}`
     }
   }
 
   createExtraFields(body: any) {
-    this.extraFields = []
+    this.extraFields = [];
+    super.createExtraFields(body);
 
-    const userStory = body.data
+    const userStory = body.data;
 
-    if (userStory.project) {
-      this.extraFields.push(
-        {
-          name: '📚 Project',
-          value: `[${userStory.project.name}](${userStory.project.permalink})`,
-          inline: true
-        },
-      )
-    }
-    if (userStory.status.name) {
-      this.extraFields.push({
-        name: '📊 Status',
-        value: userStory.status.name,
-        inline: true
-      })
-    }
     if (userStory.points && userStory.points.length > 0) {
-      this.extraFields.push({
-        name: '🎯 Points',
-        value: userStory.points
+      let values = userStory.points
           .filter((p: any) => p.value != null)
           .filter((p: any) => p.value != 0)
           .map((p: any) => `${p.role}: ${p.value}`)
-          .join('\n'),
-        inline: true
-      })
-    }
-    if (userStory.tags && userStory.tags.length > 0) {
-      this.extraFields.push({
-        name: '🏷️ Tags',
-        value: userStory.tags.join(', '),
-        inline: true
-      })
-    }
-    if (userStory.is_blocked) {
-      this.extraFields.push({
-        name: '⚠️ Blocked',
-        value: `**Note**: ${userStory.blocked_note}`,
-        inline: false
-      })
-    }
-    if (userStory.description) {
-      this.extraFields.push({
-        name: '📄 Description',
-        value: userStory.description
-      })
-    }
-  }
 
+      if(values.length > 0) 
+      {
+        this.extraFields.push({
+          name: '🎯 Points',
+          value: values.join('\n'),
+          inline: true
+        })
+      }
+    }
+
+    this.extraFields.sort((a,b) => {
+      const aValue = a.inline === false?1:0;
+      const bValue = b.inline === false?1:0;
+      return aValue-bValue
+    });
+  }
 }

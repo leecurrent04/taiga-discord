@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {} from 'crypto'
 import { webhookManager } from '../../../lib/webhookManager'
-//import { handleMilestoneEvent } from '../../../lib/eventHandlers/milestoneHandler'
+import { MilestoneHandler } from '../../../lib/eventHandlers/milestoneHandler'
 import { UserStoryHandler } from '../../../lib/eventHandlers/userStoryHandler'
 import { TaskHandler } from '../../../lib/eventHandlers/taskHandler'
 import { handleIssueEvent } from '../../../lib/eventHandlers/issueHandler'
 import { handleWikiPageEvent } from '../../../lib/eventHandlers/wikiPageHandler'
-import { handleEpicEvent } from '../../../lib/eventHandlers/epicHandler'
+import { EpicHandler} from '../../../lib/eventHandlers/epicHandler'
 
 const COLORS = {
   CREATE: 0x00ff00,  // Green
@@ -27,16 +27,18 @@ const EMBED = {
   }
 }
 
-const userStoryHander = new UserStoryHandler()
+const epicHandler = new EpicHandler()
+const userStoryHandler = new UserStoryHandler()
 const taskHandler = new TaskHandler()
+const milestoneHandler = new MilestoneHandler()
 
 const EVENT_HANDLERS = {
-  //'milestone': handleMilestoneEvent,
-  'userstory': userStoryHander.handleEvent.bind(userStoryHander),
+  'milestone': milestoneHandler.handleEvent.bind(milestoneHandler),
+  'userstory': userStoryHandler.handleEvent.bind(userStoryHandler),
   'task': taskHandler.handleEvent.bind(taskHandler),
   'issue': handleIssueEvent,
   'wikipage': handleWikiPageEvent,
-  'epic': handleEpicEvent
+  'epic': epicHandler.handleEvent.bind(epicHandler)
 }
 
 function verifySignature(key: string, rawBody: Buffer, signature: string): boolean {

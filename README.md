@@ -52,10 +52,10 @@ A modern Next.js application for managing Discord webhooks for your Taiga projec
    Create a `.env.local` file in the root directory:
    ```env
    # Base URL for the application (used for webhook URLs)
-   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   # NEXT_PUBLIC_BASE_URL=http://localhost:3000
    
    # For production, change to your actual domain
-   # NEXT_PUBLIC_BASE_URL=https://your-domain.com
+   NEXT_PUBLIC_BASE_URL=https://your-domain.com
 
    # Default Taiga instance URL for login form
    NEXT_PUBLIC_TAIGA_DEFAULT_URL=https://api.taiga.io
