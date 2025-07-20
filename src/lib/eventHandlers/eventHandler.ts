@@ -44,7 +44,10 @@ export class EventHandler
     }
 
     this.createDiffFields(body)
+
     this.createExtraFields(body)
+    this.sortExtraFields()
+
     this.createDescFields(body)
 
     return {
@@ -259,6 +262,15 @@ export class EventHandler
       })
     }
 
+  }
+
+  sortExtraFields()
+  {
+    this.extraFields.sort((a,b) => {
+      const aValue = a.inline === false?1:0;
+      const bValue = b.inline === false?1:0;
+      return aValue-bValue
+    });
   }
 
   createDescFields(body: any)
