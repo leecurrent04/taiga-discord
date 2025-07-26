@@ -59,7 +59,7 @@ export class EventHandler
 
   createBaseEmbed(body:any, title: string, color: number) {
     let changer = body.by;
-    let img = changer.photo.split('?')[0];
+    let img = changer.photo==null?null:changer.photo.split('?')[0];
 
     return {
       author: {
