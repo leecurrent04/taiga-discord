@@ -11,8 +11,9 @@ export class IssueHandler extends EventHandler
   descFields: any[] = [];
 
   handleEvent(body: any) {
-    console.log(body);
-    console.log(JSON.stringify(body.change, null, 2))
+    this.clearFields()
+    // console.log(body);
+    // console.log(JSON.stringify(body.change, null, 2))
 
     const type:string = this.getBodyTypeStr(body);
 

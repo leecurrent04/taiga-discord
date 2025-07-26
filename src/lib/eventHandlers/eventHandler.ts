@@ -22,7 +22,17 @@ export class EventHandler
     COMMENT: 0x7289da  // Sky blue
   }
 
+  clearFields() {
+    this.title = '';
+    this.color = 0x0;
+    this.diffFields = [];
+    this.extraFields = [];
+    this.descFields = [];
+  }
+
   handleEvent(body: any) {
+    this.clearFields()
+
     const type:string = this.getBodyTypeStr(body);
 
     switch (body.action) {
