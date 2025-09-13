@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { webhookManager } from '../../../lib/webhookManager'
-import { handleMilestoneEvent } from '../../../lib/eventHandlers/milestoneHandler'
+// import { handleMilestoneEvent } from '../../../lib/eventHandlers/milestoneHandler'
 import { handleUserStoryEvent } from '../../../lib/eventHandlers/userStoryHandler'
 import { handleTaskEvent } from '../../../lib/eventHandlers/taskHandler'
 import { handleIssueEvent } from '../../../lib/eventHandlers/issueHandler'
@@ -28,7 +28,7 @@ const EMBED = {
 }
 
 const EVENT_HANDLERS = {
-  'milestone': handleMilestoneEvent,
+  // 'milestone': handleMilestoneEvent,
   'userstory': handleUserStoryEvent,
   'task': handleTaskEvent,
   'issue': handleIssueEvent,
