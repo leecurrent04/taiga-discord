@@ -359,7 +359,7 @@ export default function Dashboard() {
                                 {webhook.url}
                               </Typography>
                               <Box display="flex" gap={0.5} mt={1} flexWrap="wrap">
-                                {webhook.entities.map((entity) => (
+                                {Array.isArray(webhook.entities) && webhook.entities.map((entity) => (
                                   <Chip
                                     key={entity}
                                     label={ENTITY_TYPES[entity as keyof typeof ENTITY_TYPES]}
@@ -432,19 +432,14 @@ export default function Dashboard() {
               key={key}
               control={
                 <Checkbox
-                  checked={webhookForm.entities.includes(key)}
+                  checked={Array.isArray(webhookForm.entities) && webhookForm.entities.includes(key)}
                   onChange={(e) => {
-                    if (e.target.checked) {
-                      setWebhookForm(prev => ({
-                        ...prev,
-                        entities: [...prev.entities, key]
-                      }))
-                    } else {
-                      setWebhookForm(prev => ({
-                        ...prev,
-                        entities: prev.entities.filter(entity => entity !== key)
-                      }))
-                    }
+                    const currentEntities = Array.isArray(webhookForm.entities) ? webhookForm.entities : [];
+                    const newEntities = e.target.checked
+                      ? [...currentEntities, key]
+                      : currentEntities.filter(entity => entity !== key);
+                    
+                    setWebhookForm(prev => ({ ...prev, entities: newEntities }));
                   }}
                 />
               }
