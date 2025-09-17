@@ -1,10 +1,11 @@
+import { ContentPasteSearchOutlined } from '@mui/icons-material'
 import fs from 'fs/promises'
 import path from 'path'
 
 interface Webhook {
   id: string
   url: string
-  entities: string[]
+  entities: Record<string, string[]>
   createdAt: string
   lastTested: string | null
   updatedAt?: string
@@ -59,7 +60,7 @@ class WebhookManager {
     return this.config.projects[projectId] || []
   }
 
-  async addWebhook(projectId: string, webhookUrl: string, entities: string[] = []): Promise<Webhook> {
+  async addWebhook(projectId: string, webhookUrl: string, entities: Record<string, string[]> = {}): Promise<Webhook> {
     await this.loadConfig()
     
     if (!this.config.projects[projectId]) {
@@ -193,12 +194,14 @@ class WebhookManager {
     }
   }
 
-  async sendWebhooks(projectId: string, eventType: string, embed: any): Promise<any[]> {
+  async sendWebhooks(projectId: string, eventType: string, actionType:string, embed: any): Promise<any[]> {
     await this.loadConfig()
     
     const webhooks = await this.getProjectWebhooks(projectId)
-    const relevantWebhooks = webhooks.filter(webhook => 
-      webhook.entities.includes(eventType)
+
+    // Check if the entity type exists as a key and its action array includes the action type
+    const relevantWebhooks = webhooks.filter(webhook =>
+      webhook.entities[eventType] && webhook.entities[eventType].includes(actionType)
     )
 
     if (relevantWebhooks.length === 0) {
