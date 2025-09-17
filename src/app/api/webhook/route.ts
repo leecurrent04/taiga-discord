@@ -37,7 +37,6 @@ const EVENT_HANDLERS = {
   'milestone': milestoneHandler.handleEvent.bind(milestoneHandler),
   'userstory': userStoryHandler.handleEvent.bind(userStoryHandler),
   'task': taskHandler.handleEvent.bind(taskHandler),
-  // 'issue': handleIssueEvent,
   'issue': issueHandler.handleEvent.bind(issueHandler),
   'wikipage': handleWikiPageEvent,
   'epic': epicHandler.handleEvent.bind(epicHandler)
